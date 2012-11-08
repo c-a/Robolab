@@ -142,13 +142,15 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 				readyThread = readyThreadNode.thread;
 				
 				HighResolutionClock.getTime(absTime);
-				if (readyThreadNode.deadline.isGreater(absTime))
+				if (absTime.isGreater(readyThreadNode.deadline))
 				{
+					System.out.println("Deadline miss: " + readyThread.getName());
 					readyThread.getDeadlineMissHandler().handleAsyncEvent();
 				}
 				
 				else
 				{
+					System.out.println("Firing: " + readyThread.getName());
 					fireThread(readyThread);
 				}
 				
