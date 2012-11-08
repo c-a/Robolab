@@ -52,7 +52,9 @@ public class CyclicScheduler extends BaseCyclicScheduler {
 	public void start() {
 
 		/* Minor and major cycles should be initialised here ... */
-
+		this.setMajorCycle(new RelativeTime(0, 1, 0));
+		this.setMinorCycle(new RelativeTime(0, 0, 50000));
+		
 		/* Next code signals to the infrastructure the start time of this
            Scheduler */
 		AbsoluteTime sstrt = new AbsoluteTime();
@@ -61,17 +63,47 @@ public class CyclicScheduler extends BaseCyclicScheduler {
 
 		while (true) {			
 
-			/* Minor cycle 1 */
-
-
-
-			/* Minor cycle 2 */
-
-
-			/*     ...       */
-
-
-		}	
+			/* Minor cycle 1 to 6 */
+			for (int i = 1; i <= 6; i++)
+			{
+				// Run image processing
+				fireUntilFinished(threadList[0]);
+				
+				// Run planner step for robot 1
+				fireUntilFinished(threadList[1]);
+				// Run planner step for robot 2
+				fireUntilFinished(threadList[2]);
+				// Run planner step for robot 3
+				fireUntilFinished(threadList[3]);
+				
+				// Run reactors for robots
+				fireUntilFinished(threadList[4]);
+				fireUntilFinished(threadList[5]);
+				fireUntilFinished(threadList[6]);
+				
+				// Run actuator
+				fireUntilFinished(threadList[7]);
+				
+				waitForCycleInterrupt();
+			}
+			
+			/* Minor cycle 7 to 20 */
+			for (int i = 7; i <= 20; i++)
+			{
+				// Run image processing
+				fireUntilFinished(threadList[0]);
+				
+				// Run reactors for robots
+				fireUntilFinished(threadList[4]);
+				fireUntilFinished(threadList[5]);
+				fireUntilFinished(threadList[6]);
+				
+				// Run actuator
+				fireUntilFinished(threadList[7]);
+				
+				waitForCycleInterrupt();
+			}
+		}
 	}
 }
 
