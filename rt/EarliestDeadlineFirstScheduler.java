@@ -117,11 +117,66 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 		HighResolutionClock.resetClock();
 
 		while (true) {
+			
+			HighResolutionClock.getTime(absTime);
+			// Move processes to the ready list
+			while (!suspendedList.isEmpty())
+			{
+				suspendedThreadNode = (RMThreadNode) suspendedList.getFirst();
+				suspendedThread = suspendedThreadNode.thread;
+				
+				if (absTime.isGreater(suspendedThreadNode.nextRelease))
+				{
+					suspendedList.removeFirst();
 
-			/* !!! Your code here !!! */
+					suspendedThread.setReady();
+					readyList.insert(suspendedThreadNode);
+				}
+				else
+					break;
+			}
+			
+			if (!readyList.isEmpty())
+			{
+				readyThreadNode = (RMThreadNode) readyList.getFirst();
+				readyThread = readyThreadNode.thread;
+				
+				HighResolutionClock.getTime(absTime);
+				if (readyThreadNode.deadline.isGreater(absTime))
+				{
+					readyThread.getDeadlineMissHandler().handleAsyncEvent();
+				}
+				
+				else
+				{
+					fireThread(readyThread);
+				}
+				
+				if (readyThread.isFinished())
+				{
+					readyList.removeFirst();
 
+					RelativeTime period = ((PeriodicParameters)readyThread.getReleaseParameters()).getPeriod();
+					RelativeTime deadline = readyThread.getReleaseParameters().getDeadline();
+
+					readyThreadNode.nextRelease.add(period, readyThreadNode.nextRelease);
+					readyThreadNode.nextRelease.add(deadline, readyThreadNode.deadline);
+
+					suspendedList.insert(readyThreadNode);
+				}
+			}
+			
+			// Sleep until next task is ready
+			else
+			{
+				RelativeTime sleepTime = new RelativeTime();
+				HighResolutionClock.getTime(absTime);
+				
+				suspendedThreadNode = (RMThreadNode) suspendedList.getFirst();
+				suspendedThreadNode.nextRelease.subtract(absTime, sleepTime);
+				sleep(sleepTime);
+			}
+				
 		}
 	}
 }	
-
-
