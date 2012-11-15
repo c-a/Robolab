@@ -47,7 +47,7 @@ public class RateMonotonicScheduler extends Scheduler{
 
 		EarliestDeadlineSortedList deadlineList = new EarliestDeadlineSortedList();
 		
-		/* Move processes to the suspended list */
+		/* Insert process in a list sorted according to the deadline */
 		for (int i = 0; i < threadList.length; i++) {
 			threadNode = new RMThreadNode(threadList[i]);			
 
@@ -63,13 +63,31 @@ public class RateMonotonicScheduler extends Scheduler{
 		}
 		
 		
+		/* Give the processes a priority and insert them into the suspended list. */
 		for (int priority = Integer.MAX_VALUE; !deadlineList.isEmpty(); priority--)
 		{
 			threadNode = (RMThreadNode)deadlineList.removeFirst();
-			
+			RelativeTime deadline = threadNode.thread.getReleaseParameters().getDeadline();
+		
 			PriorityParameters priorityParameters = new PriorityParameters(priority);
 			threadNode.thread.setSchedulingParameters(priorityParameters);
 			suspendedList.insert(threadNode);
+
+			/* Check if following processes have the same deadline and give them
+			 * the same priority if so.
+			 */
+			while (!deadlineList.isEmpty())
+			{
+				RMThreadNode threadNode2 = (RMThreadNode)deadlineList.getFirst();
+				
+				if  (threadNode2.thread.getReleaseParameters().getDeadline().isGreater(deadline))
+					break;
+				
+				deadlineList.removeFirst();
+
+				threadNode2.thread.setSchedulingParameters(priorityParameters);
+				suspendedList.insert(threadNode2);
+			}
 		}
 		
 		//System.out.println(readyList.toString());
