@@ -4,12 +4,17 @@
 
 package rt;
 
-import soccorob.rt.*;
-import soccorob.rt.util.*;
-import soccorob.rt.time.*;
-import soccorob.rt.etst.*;
-import soccorob.ai.*;
-import soccorob.ai.agent.*;
+import soccorob.rt.PeriodicParameters;
+import soccorob.rt.PriorityParameters;
+import soccorob.rt.RLThread;
+import soccorob.rt.Scheduler;
+import soccorob.rt.time.AbsoluteTime;
+import soccorob.rt.time.HighResolutionClock;
+import soccorob.rt.time.RelativeTime;
+import soccorob.rt.util.EarliestDeadlineSortedList;
+import soccorob.rt.util.EarliestReleaseSortedList;
+import soccorob.rt.util.PrioritySortedList;
+import soccorob.rt.util.RMThreadNode;
 
 
 /**
@@ -21,7 +26,9 @@ public class RateMonotonicScheduler extends Scheduler{
 	private PrioritySortedList readyList;
 	private EarliestReleaseSortedList  suspendedList;
 
-
+	private int finishedTasks = 0;
+	private int deadlineMisses = 0;
+	
 	public RateMonotonicScheduler() { 
 
 		/* Don't wait until JIT optimises execution*/
@@ -51,9 +58,8 @@ public class RateMonotonicScheduler extends Scheduler{
 			threadNode.nextRelease.add(threadNode.thread.getReleaseParameters().getDeadline(),
 					threadNode.deadline);
 			
-			/* Insert into suspended list */
+			/* Insert into list sorted after deadline */
 			deadlineList.insert(threadNode);
-
 		}
 		
 		
@@ -159,13 +165,13 @@ public class RateMonotonicScheduler extends Scheduler{
 				HighResolutionClock.getTime(absTime);
 				if (absTime.isGreater(readyThreadNode.deadline))
 				{
-					System.out.println("Deadline miss: " + readyThread.getName());
+					deadlineMisses++;
+
 					readyThread.getDeadlineMissHandler().handleAsyncEvent();
 				}
 				
 				else
 				{
-					System.out.println("Firing: " + readyThread.getName());
 					fireThread(readyThread);
 				}
 				
@@ -181,6 +187,9 @@ public class RateMonotonicScheduler extends Scheduler{
 					readyThreadNode.nextRelease.add(deadline, readyThreadNode.deadline);
 
 					suspendedList.insert(readyThreadNode);
+					
+					finishedTasks++;
+					printDeadlineMissRatio();
 				}
 			}
 			
@@ -196,6 +205,11 @@ public class RateMonotonicScheduler extends Scheduler{
 			}
 				
 		}
+	}
+	
+	private void printDeadlineMissRatio()
+	{
+		System.out.println("Deadline miss ratio: " + (deadlineMisses / finishedTasks));
 	}
 }	
 

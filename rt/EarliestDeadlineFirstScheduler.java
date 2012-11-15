@@ -4,12 +4,15 @@
 
 package rt;
 
-import soccorob.rt.*;
-import soccorob.rt.util.*;
-import soccorob.rt.time.*;
-import soccorob.rt.etst.*;
-import soccorob.ai.*;
-import soccorob.ai.agent.*;
+import soccorob.rt.PeriodicParameters;
+import soccorob.rt.RLThread;
+import soccorob.rt.Scheduler;
+import soccorob.rt.time.AbsoluteTime;
+import soccorob.rt.time.HighResolutionClock;
+import soccorob.rt.time.RelativeTime;
+import soccorob.rt.util.EarliestDeadlineSortedList;
+import soccorob.rt.util.EarliestReleaseSortedList;
+import soccorob.rt.util.RMThreadNode;
 
 
 /**
@@ -21,6 +24,8 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 	private EarliestDeadlineSortedList readyList;
 	private EarliestReleaseSortedList  suspendedList;
 
+	private int finishedTasks = 0;
+	private int deadlineMisses = 0;
 
 	public EarliestDeadlineFirstScheduler() { 
 
@@ -146,13 +151,13 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 				HighResolutionClock.getTime(absTime);
 				if (absTime.isGreater(readyThreadNode.deadline))
 				{
-					System.out.println("Deadline miss: " + readyThread.getName());
+					deadlineMisses++;
+					
 					readyThread.getDeadlineMissHandler().handleAsyncEvent();
 				}
 				
 				else
 				{
-					System.out.println("Firing: " + readyThread.getName());
 					fireThread(readyThread);
 				}
 				
@@ -168,6 +173,9 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 					readyThreadNode.nextRelease.add(deadline, readyThreadNode.deadline);
 
 					suspendedList.insert(readyThreadNode);
+					
+					finishedTasks++;
+					printDeadlineMissRatio();
 				}
 			}
 			
@@ -183,5 +191,10 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 			}
 				
 		}
+	}
+	
+	private void printDeadlineMissRatio()
+	{
+		System.out.println("Deadline miss ratio: " + (deadlineMisses / finishedTasks));
 	}
 }	

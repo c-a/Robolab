@@ -3,9 +3,11 @@
 
 package rt;
 
-import soccorob.ai.agent.*;
-import soccorob.rt.*;
-import soccorob.rt.time.*;
+import soccorob.rt.BaseCyclicScheduler;
+import soccorob.rt.RLThread;
+import soccorob.rt.time.AbsoluteTime;
+import soccorob.rt.time.HighResolutionClock;
+import soccorob.rt.time.RelativeTime;
 
 
 public class CyclicScheduler extends BaseCyclicScheduler {
