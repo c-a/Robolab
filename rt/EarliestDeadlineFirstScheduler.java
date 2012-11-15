@@ -136,11 +136,13 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 					break;
 			}
 			
+			// Run a ready task
 			if (!readyList.isEmpty())
 			{
 				readyThreadNode = (RMThreadNode) readyList.getFirst();
 				readyThread = readyThreadNode.thread;
 				
+				// Check if the task has missed it deadline
 				HighResolutionClock.getTime(absTime);
 				if (absTime.isGreater(readyThreadNode.deadline))
 				{
@@ -154,6 +156,7 @@ public class EarliestDeadlineFirstScheduler extends Scheduler{
 					fireThread(readyThread);
 				}
 				
+				// Move the task to the suspended list if it's finished
 				if (readyThread.isFinished())
 				{
 					readyList.removeFirst();
