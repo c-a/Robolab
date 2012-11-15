@@ -227,7 +227,7 @@ public class RateMonotonicScheduler extends Scheduler{
 	
 	private void printDeadlineMissRatio()
 	{
-		System.out.println("Deadline miss ratio: " + (deadlineMisses / finishedTasks));
+		System.out.println("Deadline miss ratio: " + ((float)deadlineMisses / finishedTasks));
 	}
 }	
 
